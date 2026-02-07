@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shopify Auth Helper</title>
+  <style>
+    body { font-family: sans-serif; padding: 40px; text-align: center; }
+    .code-box { 
+      background: #f0fdf4; border: 2px solid #16a34a; 
+      padding: 20px; font-size: 24px; font-family: monospace; 
+      margin: 20px auto; max-width: 600px; word-break: break-all;
+    }
+    h1 { color: #333; }
+  </style>
+</head>
+<body>
+  <h1>Shopify Authorization Code</h1>
+  <p>Copy this code and paste it into Postman:</p>
+  
+  <div id="result" class="code-box">Searching for code...</div>
+
+  <script>
+    // This script grabs the "?code=..." from the address bar
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    
+    if (code) {
+      document.getElementById("result").innerText = code;
+    } else {
+      document.getElementById("result").innerText = "No code found in URL yet.";
+      document.getElementById("result").style.borderColor = "#ef4444";
+      document.getElementById("result").style.background = "#fef2f2";
+    }
+  </script>
+</body>
+</html>
