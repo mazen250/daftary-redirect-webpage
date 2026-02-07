@@ -1,35 +1,104 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Shopify Auth Helper</title>
-  <style>
-    body { font-family: sans-serif; padding: 40px; text-align: center; }
-    .code-box { 
-      background: #f0fdf4; border: 2px solid #16a34a; 
-      padding: 20px; font-size: 24px; font-family: monospace; 
-      margin: 20px auto; max-width: 600px; word-break: break-all;
-    }
-    h1 { color: #333; }
-  </style>
-</head>
-<body>
-  <h1>Shopify Authorization Code</h1>
-  <p>Copy this code and paste it into Postman:</p>
-  
-  <div id="result" class="code-box">Searching for code...</div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting to Daftary...</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        margin-bottom: 1rem;
+        color: #333;
+      }
+      p {
+        color: #666;
+        margin-bottom: 2rem;
+      }
+      .btn {
+        display: inline-block;
+        background: #0070f3;
+        color: white;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Authenticating...</h1>
+      <p>Please wait while we redirect you back to the app.</p>
+      <div id="fallback"></div>
+    </div>
 
-  <script>
-    // This script grabs the "?code=..." from the address bar
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    
-    if (code) {
-      document.getElementById("result").innerText = code;
-    } else {
-      document.getElementById("result").innerText = "No code found in URL yet.";
-      document.getElementById("result").style.borderColor = "#ef4444";
-      document.getElementById("result").style.background = "#fef2f2";
-    }
-  </script>
-</body>
+    <script>
+      // Helper to get query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const state = urlParams.get("state");
+
+      if (code) {
+        let redirectUri = "";
+        console.log("State:", state);
+
+        if (state) {
+          // The app sends state as JSON string: {"nonce": "...", "redirectUri": "..."}
+          try {
+            // Sometimes state is URL encoded, sometimes not depending on Shopify implementation
+            const decoded = decodeURIComponent(state);
+            console.log("Decoded State:", decoded);
+
+            const stateObj = JSON.parse(decoded);
+            if (stateObj && stateObj.redirectUri) {
+              redirectUri = stateObj.redirectUri;
+              console.log("Found redirectUri:", redirectUri);
+            }
+          } catch (e) {
+            console.error("Failed to parse state JSON", e);
+          }
+        }
+
+        if (!redirectUri) {
+          // Fallback for testing if state parsing fails
+          console.log("No redirect URI found, check console logs.");
+        } else {
+          // Ensure proper separator
+          const separator = redirectUri.includes("?") ? "&" : "?";
+          const finalUrl = `${redirectUri}${separator}code=${code}`;
+
+          console.log("Redirecting to:", finalUrl);
+          window.location.href = finalUrl;
+
+          const fallbackDiv = document.getElementById("fallback");
+          fallbackDiv.innerHTML = `
+                    <a href="${finalUrl}" class="btn">Click to Return to App</a>
+                    <br><br>
+                    <small>${finalUrl}</small>
+                `;
+        }
+      } else {
+        document.querySelector("h1").innerText = "Error";
+        document.querySelector("p").innerText =
+          "No authorization code received from Shopify.";
+      }
+    </script>
+  </body>
 </html>
